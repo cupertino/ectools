@@ -1,0 +1,12 @@
+Dependencies
+- boost
+- ncurses lib5
+- kernel source code (version 2.6)
+- pthread
+- g++ (version 4.1 or later)
+
+Installation
+To install the ectools, one need to configure the kernel path by changing the 
+KERNEL_PATH variable inside the Makefile and then run the make command to 
+compile the code. The binaries will be available on the bin folder.
+

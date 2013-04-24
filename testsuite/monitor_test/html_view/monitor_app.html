@@ -1,0 +1,71 @@
+
+<!doctype html>
+<html>
+	<head>
+		
+		<style>
+		
+			html,body {
+				height:100%;
+				padding:0px;
+				margin:0px;
+			}
+			
+
+			
+			iframe { width:100%; height:100%; border:none; } 
+
+		
+		</style>
+	
+	
+		<script>
+
+			var monitor = setInterval ( "monitor_Refresh()", 1000 );
+
+			function monitor_Refresh()
+			{
+				/* Reload the frame page */
+				document.getElementById('data').location="data.html";
+			}
+			
+			function changeFreq(value)
+			{
+				clearInterval(monitor);
+				var f = parseInt(value);
+				if (f < 500) f = 500; 
+				monitor = setInterval("monitor_Refresh()", f);
+			}
+			
+			
+			function pageY(elem) { 
+			    return elem.offsetParent ? (elem.offsetTop + pageY(elem.offsetParent)) : elem.offsetTop; 
+			} 
+
+			function resizeIframe() 
+			{ 
+			    var height = window.innerHeight || document.body.clientHeight || document.documentElement.clientHeight; 
+			    height -= pageY(document.getElementById('data')) + 20; 
+			    height = (height < 0) ? 0 : height; 
+			    document.getElementById('data').style.height = height + 'px'; 
+			} 
+			window.onresize = resizeIframe; 
+			window.onload = resizeIframe; 
+			
+
+		</script>
+		
+	
+	</head>
+	
+	<body>
+		
+		<div style="padding:16px;">
+			<div style="height:20%;">
+				<b>Frequency (min=500ms) : </b> <input id="freq" onChange="changeFreq(this.value)" value="1000"> ms
+				<hr>
+			</div>
+			<iframe id="data" frameborder="0px" border="0px"  vspace="0"  hspace="0" scrolling="yes" src="data.html"></iframe>
+		</div>
+	</body>
+</html>

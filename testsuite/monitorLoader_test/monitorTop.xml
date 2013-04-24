@@ -1,0 +1,54 @@
+<monitor>
+	<!-- Column Tag -->
+	<!-- 0 == Name -->
+	<!-- 1 == PID -->
+	<!-- 2 == Sensor -->
+	
+	
+	<freq value="2000" />
+	
+	<column name="Name" type="string" size="30" tag="0" />
+	<column name="PID" type="int" size="10" tag="1" />
+	
+	<column name="S1" type="int" size="10" tag="2" class="sensor" object="fakesensor"  />
+	<column name="S2" type="int" size="10" tag="2" class="sensor" object="fakesensor">
+		<arg id="54" type="float" value="78.56" />
+		<arg type="string" value="FakeSensor test" />
+	</column>
+
+</monitor>
+
+<view type="term" ctrl="term"> <!-- type="term" -->
+	<show columns="Name,PID,S1,S2" />
+	
+	
+	<style id="1" align="Center" suffix="%" color="#ff0000" />
+	<style id="2" align="RIGHT" suffix=" �/s" color="#00FF00" />
+	
+	<style id="100" backcolor="#FFFF00" color="#ff0000"/>
+	<style id="50" backcolor="#008000" color="#ff0000"/>
+	
+	<style-filter filter="(Name == 'PSPad.exe', 'eclib.exe', 'init', 'crond')" style="100" />
+	<sort by="Name" order="asc" />
+	
+	<sum columns="S1" />
+	
+	
+	<position x="0" y="3" offseth="3" offsetw="0"/>
+	
+	<log 	type="file"
+			format="xml" 
+			flush-freq="1000" 
+			flush-max-item="100" 
+			added-block="add2"
+			default-block="data2"
+			deleted-block="delete2"
+			updated-block="update2"
+			filter="(PID > 1000) . (PID < 2000)" />	
+			
+	<log-type clear="false" file="out2.log" />
+	<log-format attr-mode="true" separator=","/>
+	
+	
+	
+</view>

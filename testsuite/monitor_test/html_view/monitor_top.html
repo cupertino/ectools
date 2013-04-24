@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <script>
+      var monitor = setInterval ( "monitor_Refresh()", 1000 );
+    
+      function monitor_Refresh()
+	  {
+	    /* Reload the frame page */
+	    parent.data.location="data.html";
+	  }
+	
+	  function changeFreq(value)
+      {
+	    clearInterval(monitor);
+	    var f = parseInt(value);
+	    if (f < 500) f = 0; 
+        if (f == 0) return ;
+	    monitor = setInterval("monitor_Refresh()", f);
+	  }
+    </script>
+  </head>
+  <body>	
+	<div style="padding:16px">
+	  <b>Frequency (min=500ms) : </b> <input id="freq" onChange="changeFreq(this.value)" value="1000"> ms
+	</div>
+	<hr>
+  </body>
+</html>

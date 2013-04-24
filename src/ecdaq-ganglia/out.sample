@@ -1,0 +1,4 @@
+#log each 2 seconds
+#TIME (Ticks) ; POWER_ESTIMATOR (all machine consumption)
+
+POWER_ESTIMATOR_NAME: POWER_ESTIMATOR_VALUE (all machine consumption)

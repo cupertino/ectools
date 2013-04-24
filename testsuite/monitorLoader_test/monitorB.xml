@@ -1,0 +1,122 @@
+<monitor>
+	<!-- Column Tag -->
+	<!-- 0 == Name -->
+	<!-- 1 == PID -->
+	<!-- 2 == Sensor -->
+	
+	
+	<freq value="2000" />
+	
+	<column name="Name" type="string" size="30" tag="0" />
+	<column name="PID" type="int" size="10" tag="1" />
+	
+	<column name="S1" type="int" size="10" tag="2" class="sensor" object="fakesensor"  />
+	<column name="S2" type="int" size="10" tag="2" class="sensor" object="fakesensor">
+		<arg id="54" type="float" value="78.56" />
+		<arg type="string" value="FakeSensor test" />
+	</column>
+
+</monitor>
+
+<view type="term" ctrl="term"> <!-- type="term" -->
+	<show columns="Name,PID,S1" />
+	
+	
+	<style id="1" align="Center" suffix="%" color="#ff0000" />
+	<style id="2" align="RIGHT" suffix=" �/s" color="#00FF00" />
+	
+	<style id="100" backcolor="#FFFF00" color="#ff0000"/>
+	<style id="50" backcolor="#008000" color="#ff0000"/>
+	
+	<style-filter filter="(Name == 'PSPad.exe', 'eclib.exe')" style="100" />
+	<sort by="Name" order="asc" />
+	
+	<sum columns="S1" />
+	
+	
+	<position x="0" y="3" offseth="3" offsetw="0"/>
+	
+	<log 	type="file"
+			format="xml" 
+			flush-freq="1000" 
+			flush-max-item="100" 
+			added-block="add2"
+			default-block="data2"
+			deleted-block="delete2"
+			updated-block="update2"
+			filter="(PID > 1000) . (PID < 2000)" />	
+			
+	<log-type clear="false" file="out2.log" />
+	<log-format attr-mode="true" separator=","/>
+	
+	
+	
+</view>
+
+<view type="html" ctrl="term">
+
+	<output file="html_view/data.html" />
+</view>
+
+<view type="amChart" ctrl="term">
+	
+	<sort by="Name" order="ASC" />
+	
+	<chart key="Name" value="S1" />
+	
+	<html-header>
+		<![CDATA[
+		<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+		<html>
+			<head> 					
+				<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+				<title>Libec - Pie chart</title>
+				<link rel="stylesheet" href="cea_chart.css" type="text/css">
+				<script src="amcharts/amcharts.js" type="text/javascript"></script>   					
+				<script type="text/javascript">
+		 			var chart; 					
+					 var chartData = [
+		]]>
+	</html-header>
+	
+	<html-footer>
+		<![CDATA[
+					];
+
+
+		            AmCharts.ready(function () {
+		                // PIE CHART
+		                chart = new AmCharts.AmPieChart();
+		
+		                // title of the chart
+		                chart.addTitle("Process", 16);
+		
+		                chart.dataProvider = chartData;
+		                chart.titleField = "Name";
+		                chart.valueField = "S1";
+		                chart.sequencedAnimation = false;
+		                chart.startEffect = "elastic";
+		                chart.innerRadius = "30%";
+		                chart.startDuration = 0;
+		                chart.labelRadius = 15;
+		
+		                // the following two lines makes the chart 3D
+		                chart.depth3D = 10;
+		                chart.angle = 15;
+		
+		                // WRITE                                 
+		                chart.write("chartdiv");
+		            });
+		        </script>
+		    </head>
+				    
+		    <body>
+		        <div id="chartdiv" style="width: 100%; height: 400px;"></div>
+		    </body>
+		
+		</html>
+		]]>
+	</html-footer>
+
+	<output file="html_view/chart.html" />
+</view>
