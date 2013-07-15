@@ -77,7 +77,7 @@ VALGREEN_OUT = bin/valgreen
 build_daq: build_lib
 	mkdir -p $(dir $(DAQ_OUT))
 	mkdir -p ~/.config/libec
-	$(CC) $(VIEW_INCLUDES) $(CCFLAGS) -lpthread src/ecdaq/main.cpp -o $(DAQ_OUT) $(VIEW_LIBS)
+	$(CC) $(VIEW_INCLUDES) $(CCFLAGS) src/ecdaq/main.cpp -o $(DAQ_OUT) $(VIEW_LIBS) -lpthread
 
 install_daq:
 	cp $(DAQ_OUT) $(INSTALL_PATH)/
@@ -88,7 +88,7 @@ clean_daq:
 build_valgreen: build_lib
 	mkdir -p $(dir $(DAQ_OUT))
 	mkdir -p ~/.config/valgreen
-	$(CC) $(VIEW_INCLUDES) $(CCFLAGS) -lpthread src/valgreen/DPELRCpuProcs.cpp src/valgreen/main.cpp -o $(VALGREEN_OUT) $(VIEW_LIBS)
+	$(CC) $(VIEW_INCLUDES) $(CCFLAGS) src/valgreen/DPELRCpuProcs.cpp src/valgreen/main.cpp -o $(VALGREEN_OUT) $(VIEW_LIBS) -lpthread
 
 install_valgreen:
 	cp $(VALGREEN_OUT) $(INSTALL_PATH)/
@@ -116,7 +116,7 @@ clean_ps:
 build_top: build_lib
 	mkdir -p $(dir $(TOP_OUT))
 	mkdir -p ~/.config/ectop
-	$(CC) $(VIEW_INCLUDES) $(CCFLAGS) -lncurses src/ectop/model/MonitorEctop.cpp src/ectop/main.cpp -o $(TOP_OUT) $(VIEW_LIBS)
+	$(CC) $(VIEW_INCLUDES) $(CCFLAGS) src/ectop/model/MonitorEctop.cpp src/ectop/main.cpp -o $(TOP_OUT) $(VIEW_LIBS) -lncurses
 	mkdir -p ~/.config/ectop/html
 	#static files for frame table view (need the httpd service running)
 	cp -rf src/ectop/view/html/frame_table/* ~/.config/ectop/html
