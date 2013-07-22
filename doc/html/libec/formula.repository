@@ -1,0 +1,13 @@
+\form#0:$t^{PID}_{CPU} = t^{PID}_{sys} + t^{PID}_{usr} $
+\form#1:$t^{node}_{CPU} = t^{node}_{sys} + t^{node}_{usr} + t^{node}_{idle} $
+\form#2:\[ CPU_usage = \frac{CPU_elapsed_time}{CPU_time} \]
+\form#3:\[ \%CPU^{pid} = \frac{\Delta t_{usr}^{pid} + \Delta t_{sys}^{pid}}{\Delta t_{usr} + \Delta t_{nice} + \Delta t_{sys} + \Delta t_{idl}} \]
+\form#4:$t_{usr}^{pid}$
+\form#5:$t_{sys}^{pid}$
+\form#6:$t_{usr}$
+\form#7:$t_{nice}$
+\form#8:$t_{sys}$
+\form#9:$t_{idl}$
+\form#10:$\%CPU^{pid}$
+\form#11:\[ \%CPU^{pid} = \frac{\Delta t_{usr}^{pid} + \Delta t_{sys}^{pid}}{\textrm{CLK\_TCK} \times \textrm{CPUs} \times \Delta t} \]
+\form#12:\[ P = c \times v \times 10^{-12}\]
