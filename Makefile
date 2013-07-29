@@ -155,6 +155,9 @@ build_testsuite: build_lib
 	$(CC) $(TEST_INCLUDES) $(CCFLAGS) testsuite/SensorRunningProcs_test.cpp -o $(TEST_OUT)/sensorRunningProcs_test $(TEST_LIBS)
 	$(CC) $(TEST_INCLUDES) $(CCFLAGS) testsuite/SensorPowerAcpi_test.cpp -o $(TEST_OUT)/sensorPowerAcpi_test $(TEST_LIBS)
 	$(CC) $(TEST_INCLUDES) $(CCFLAGS) testsuite/SensorPowerPlogg_test.cpp -o $(TEST_OUT)/sensorPowerPlogg_test $(TEST_LIBS)
+#
+	$(CC) $(TEST_INCLUDES) $(CCFLAGS) testsuite/SensorPowerWattsUp_test.cpp -o $(TEST_OUT)/sensorPowerWattsUp_test $(TEST_LIBS)
+#
 	$(CC) $(TEST_INCLUDES) $(CCFLAGS) testsuite/SensorPowerRecs_test.cpp -o $(TEST_OUT)/sensorPowerRecs_test $(TEST_LIBS)
 	$(CC) $(TEST_INCLUDES) $(CCFLAGS) testsuite/SensorPowerG5k_test.cpp -o $(TEST_OUT)/sensorPowerG5k_test $(TEST_LIBS)
 	# pid sensors
