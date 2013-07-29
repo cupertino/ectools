@@ -174,6 +174,10 @@ namespace cea
 
     usleep(1000);
 
+    while(_cValue.Float == 0) { // the first reads are usually 0
+      update();
+    }
+
     DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter", "Device ready and logging power");
 
     return true;
@@ -191,6 +195,11 @@ namespace cea
     float power;
     string errorMsg;
     WuCmdStatus status = readPower(&power, &errorMsg);
+
+    ostringstream dbgMsg;
+    dbgMsg << "read power = " << power;
+    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter", dbgMsg.str());
+
     if (status != NO_ERROR)
     {
       DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
