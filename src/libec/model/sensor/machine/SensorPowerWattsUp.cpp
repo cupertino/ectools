@@ -196,10 +196,6 @@ namespace cea
     string errorMsg;
     WuCmdStatus status = readPower(&power, &errorMsg);
 
-    ostringstream dbgMsg;
-    dbgMsg << "read power = " << power;
-    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter", dbgMsg.str());
-
     if (status != NO_ERROR)
     {
       DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
