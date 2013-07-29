@@ -33,9 +33,6 @@ namespace cea
     void
     update();
 
-    void
-    experiment();
-
   private:
     enum WuCmdStatus
     {
