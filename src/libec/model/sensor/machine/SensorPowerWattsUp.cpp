@@ -89,7 +89,11 @@ namespace cea
     buffer = new char[bufferSize];
     deviceFileDescriptor = -1;
 
+    _name = "WATTS_UP_POWER_METER";
+    _alias = "PM_WU";
+
     _type = Float;
+    _cValue.Float = 0.0;
     _isActive = initWattsUp(wu_device);
   }
 
