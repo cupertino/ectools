@@ -30,7 +30,8 @@ namespace cea
     /// \param freq Frequency at which data will be collected.
     /// \param logfile Path to the log file (including its name).
     DataAcquisition(char* bench, unsigned int idleTime = 2, float freq = 1.0,
-        std::string logfile = "daq_out.log");
+        std::string logfilename = "daq_log.txt", std::string outfilename =
+            "daq_data.csv");
     virtual
     ~DataAcquisition();
 
@@ -48,6 +49,10 @@ namespace cea
     /// with the available ones.
     void
     getAvailableSensors(std::list<Sensor*> &sensor);
+
+    /// Loads all available sensor in the current object
+    void
+    loadAvailableSensors();
 
     void
     setBenchmark(char* bench);
@@ -70,7 +75,8 @@ namespace cea
 
     std::stringstream _ss;
 
-    Log _logfile;
+    Log _logFile;
+    Log _outFile;
 
     /// Flag to indicate if the benchmark is running
     bool _isBenchRunning;

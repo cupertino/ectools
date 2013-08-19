@@ -20,14 +20,19 @@
 namespace cea
 {
   DataAcquisition::DataAcquisition(char* bench, unsigned int idleTime,
-      float freq, std::string logfile)
+      float freq, std::string logfilename, std::string outfilename)
   {
     _benchCmd = bench;
     setFrequency(freq);
     setIdleTime(idleTime);
 
-    _logfile.set(FileLog(logfile, true), GnuplotFormat());
-    _logfile.setFlushFrequency(5000);
+    _logFile.clear();
+    _logFile.set(FileLog(logfilename, true), GnuplotFormat());
+    _logFile.setFlushFrequency(5000);
+
+    _outFile.clear();
+    _outFile.set(FileLog(outfilename, true), CSVFormat());
+    _outFile.setFlushFrequency(5000);
   }
 
   DataAcquisition::~DataAcquisition()
@@ -35,13 +40,6 @@ namespace cea
     for (std::list<cea::Sensor*>::iterator it = _sensors.begin();
         it != _sensors.end(); it++)
       delete (*it);
-
-//    for (std::list<cea::Sensor*>::iterator it = _sensors.begin();
-//        it != _sensors.end(); it++)
-//      {
-//        cea::Sensor* s = *it;
-//        delete s;
-//      }
   }
 
   void
@@ -53,11 +51,7 @@ namespace cea
     Sensor* s;
 
     if (_sensors.empty())
-//      _sensors = getAvailableSensors();
       getAvailableSensors(_sensors);
-
-    _logfile.addComment("");
-    _logfile.addComment("Benchmark Data");
 
     logHeader(_sensors);
 
@@ -68,21 +62,25 @@ namespace cea
         s = *it;
         s->update();
       }
-    sleep(1);
+//    sleep(1);
 
     start_time = time(NULL);
 
-    // Runs the benchmark in a new thread
-    if (pthread_create(&thread, NULL, runBenchmark, this) == -1)
+    if (_benchCmd != NULL)
       {
-        std::string msg = "error: The benchmark thread could not be created.";
-        std::cerr << msg << std::endl;
-        _logfile.openBlock("");
-        _logfile.write(msg);
-        _logfile.closeBlock("");
-        _logfile.update();
-        _logfile.flush();
-        exit(1);
+        // Runs the benchmark in a new thread
+        if (pthread_create(&thread, NULL, runBenchmark, this) == -1)
+          {
+            std::string msg =
+                "error: The benchmark thread could not be created.";
+            std::cerr << msg << std::endl;
+            _logFile.openBlock("");
+            _logFile.write(msg);
+            _logFile.closeBlock("");
+            _logFile.update();
+            _logFile.flush();
+            exit(1);
+          }
       }
     _isBenchRunning = true;
 
@@ -93,82 +91,83 @@ namespace cea
 
     while (_isBenchRunning)
       {
-        _logfile.openBlock("");
-//        std::stringstream ss;
-//        ss << time(NULL) << ".0";
-//        _logfile.write(ss.str());
-        _logfile.write(time(NULL));
+        _outFile.openBlock("");
+        _outFile.write(time(NULL));
 
         for (std::list<Sensor*>::iterator it = _sensors.begin();
             it != _sensors.end(); it++)
           {
             s = *it;
+            s->update();
+
             if (s->getType() == U64)
-              {
-//                std::stringstream ss;
-//                ss << s->getValue().U64 << ".0";
-//                _logfile.write(ss.str());
-                _logfile.write(s->getValue().U64);
-              }
+              _outFile.write(s->getValue().U64);
             else
-              _logfile.write(s->getValue().Float);
+              _outFile.write(s->getValue().Float);
           }
-        _logfile.closeBlock("");
-        _logfile.update();
+        _outFile.closeBlock("");
+        _outFile.update();
 
         gettimeofday(&tv, NULL);
         usleep(_periodTime * 1000000 - tv.tv_usec);
       }
 
     // Log benchmark data
-    _logfile.addComment("");
-    _logfile.addComment("Benchmark summary");
+    _logFile.addComment("");
+    _logFile.addComment("Benchmark summary");
     _ss.str("");
     _ss << "  Command line:      \t" << _benchCmd;
-    _logfile.addComment(_ss.str());
+    _logFile.addComment(_ss.str());
     _ss.str("");
     _ss << "  Start time:        \t" << _benchStart;
-    _logfile.addComment(_ss.str());
+    _logFile.addComment(_ss.str());
     _ss.str("");
     _ss << "  End time:          \t" << _benchEnd;
-    _logfile.addComment(_ss.str());
-    _logfile.update();
+    _logFile.addComment(_ss.str());
+    _logFile.update();
 
-    _logfile.flush();
+    _outFile.flush();
+    _logFile.flush();
+  }
+
+  void
+  DataAcquisition::loadAvailableSensors()
+  {
+    getAvailableSensors(_sensors);
   }
 
   void
   DataAcquisition::getAvailableSensors(std::list<cea::Sensor*> &sensors)
   {
-//    std::list<cea::Sensor*> sensors;
     cea::Sensor* newSensor;
     int nPC = 0;
     int nNet = 0;
     int nPow = 0;
     int nPS = 0;
+    int nCPU = 0;
 
-    _logfile.addComment("System config");
+    _logFile.addComment("System config");
     struct utsname buf;
     if (uname(&buf) == 0)
       {
         _ss.str("");
         _ss << "  Node name:             \t" << buf.nodename;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
         _ss.str("");
         _ss << "  Domain name:           \t" << buf.domainname;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
         _ss.str("");
         _ss << "  OS name:               \t" << buf.sysname;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
         _ss.str("");
         _ss << "  OS release:            \t" << buf.release;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
         _ss.str("");
         _ss << "  OS version:            \t" << buf.version;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
         _ss.str("");
         _ss << "  Machine:               \t" << buf.machine;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
       }
 
     int numCPU = SystemInfo::getCpuCount();
@@ -177,7 +176,7 @@ namespace cea
       {
         _ss.str("");
         _ss << "  Number of CPUs:        \t" << numCPU;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
       }
 
     long int numFILES = sysconf(_SC_OPEN_MAX);
@@ -185,13 +184,13 @@ namespace cea
       {
         _ss.str("");
         _ss << "  Max files per process: \t" << numFILES;
-        _logfile.addComment(_ss.str());
+        _logFile.addComment(_ss.str());
       }
 
-    _logfile.addComment("");
-    _logfile.addComment("Sensor's details");
+    _logFile.addComment("");
+    _logFile.addComment("Sensor's details");
 
-    _logfile.update();
+    _logFile.update();
 
     // Performance Counter sensors per node
     for (int perf_hw_id = 0; perf_hw_id < PERF_COUNT_HW_MAX; perf_hw_id++)
@@ -225,52 +224,6 @@ namespace cea
           }
       }
 
-    /*
-     // Performance Counter sensors per cpu
-     for (int perf_hw_id = 0; perf_hw_id < PERF_COUNT_HW_MAX; perf_hw_id++)
-     {
-     for (int cpu = 0; cpu < numCPU; cpu++)
-     {
-     newSensor = new PerfCount(PERF_TYPE_HARDWARE, perf_hw_id, -1, cpu);
-     if (addSensor(&sensors, newSensor) == 0)
-     nPC++;
-     }
-     }
-     for (int perf_sw_id = 0; perf_sw_id < PERF_COUNT_SW_MAX; perf_sw_id++)
-     {
-     for (int cpu = 0; cpu < numCPU; cpu++)
-     {
-     newSensor = new PerfCount(PERF_TYPE_SOFTWARE, perf_sw_id, -1, cpu);
-     if (addSensor(&sensors, newSensor) == 0)
-     nPC++;
-     }
-     }
-
-     for (int perf_hw_cache_id = 0; perf_hw_cache_id < PERF_COUNT_HW_CACHE_MAX;
-     perf_hw_cache_id++)
-     {
-     for (int perf_hw_cache_op_id = 0;
-     perf_hw_cache_op_id < PERF_COUNT_HW_CACHE_OP_MAX;
-     perf_hw_cache_op_id++)
-     {
-     for (int perf_hw_cache_op_result_id = 0;
-     perf_hw_cache_op_result_id < PERF_COUNT_HW_CACHE_RESULT_MAX;
-     perf_hw_cache_op_result_id++)
-     {
-     u64 config = (perf_hw_cache_id) | (perf_hw_cache_op_id << 8)
-     | (perf_hw_cache_op_result_id << 16);
-
-     for (int cpu = 0; cpu < numCPU; cpu++)
-     {
-     newSensor = new PerfCount(PERF_TYPE_HW_CACHE, config, -1,
-     cpu);
-     if (addSensor(&sensors, newSensor) == 0)
-     nPC++;
-     }
-     }
-     }
-     }*/
-
     // Network sensors
     for (uint net_id = 0; net_id < Network::TYPE_MAX; net_id++)
       {
@@ -278,34 +231,40 @@ namespace cea
         nNet += addSensor(&sensors, newSensor);
       }
 
-    // Pidstat sensors
-    for (uint ps_type = 0; ps_type < PidStat::TYPE_MAX; ps_type++)
+//    newSensor = new CpuTimeUsage;
+//    nCPU += addSensor(&sensors, newSensor);
+
+    int ncpus = SystemInfo::getCpuCount();
+    for (int c = 0; c < ncpus; c++)
       {
-        newSensor = new PidStat((PidStat::TypeId) ps_type);
-        nPS += addSensor(&sensors, newSensor);
+//        newSensor = new CpuTimeUsage(i);
+//        nCPU += addSensor(&sensors, newSensor);
+
+        newSensor = new CpuFreq(c);
+        nCPU += addSensor(&sensors, newSensor);
+
+//        newSensor = new CpuFreqMsr(c);
+//        nCPU += addSensor(&sensors, newSensor);
+
+        newSensor = new CpuTemp(c);
+        nCPU += addSensor(&sensors, newSensor);
+
+//        newSensor = new CpuStateMsr(c);
+//        nCPU += addSensor(&sensors, newSensor);
+
+//        int nstates = CpuStateTime::getNumberofStates();
+//        for (int s = 0; s < nstates; s++)
+//          {
+//            newSensor = new CpuStateTimeElapsed(s, c);
+//            nCPU += addSensor(&sensors, newSensor);
+//          }
       }
 
-    /*
-     for (uint ps_mem_id = 0; ps_mem_id < PS_MEM_MAX; ps_mem_id++)
-     {
-     newSensor = new PidStat(-1, PS_TYPE_MEMORY, ps_mem_id);
-     if (addSensor(&sensors, newSensor) == 0)
-     nPS++;
-     }
-     for (int ps_io_id = 0; ps_io_id < PS_IO_MAX; ps_io_id++)
-     {
-     newSensor = new PidStat(-1, PS_TYPE_IO, ps_io_id);
-     if (addSensor(&sensors, newSensor) == 0)
-     nPS++;
-     }
-     for (int ps_task_switch_id = 0; ps_task_switch_id < PS_TASK_SWITCH_MAX;
-     ps_task_switch_id++)
-     {
-     newSensor = new PidStat(-1, PS_TYPE_TASK_SWITCH, ps_task_switch_id);
-     if (addSensor(&sensors, newSensor) == 0)
-     nPS++;
-     }
-     */
+//    newSensor = new MemRss;
+//    nCPU += addSensor(&sensors, newSensor);
+
+//    newSensor = new MemUsage;
+//    nCPU += addSensor(&sensors, newSensor);
 
     // Power sensors
     newSensor = new G5kPowerMeter();
@@ -314,25 +273,29 @@ namespace cea
     newSensor = new AcpiPowerMeter();
     nPow += addSensor(&sensors, newSensor);
 
-    _logfile.addComment("");
-    _logfile.addComment("Number of Available Sensors");
+//    newSensor = new RecsPowerMeter("192.168.0.250", 10001, 13);
+//    nPow += addSensor(&sensors, newSensor);
+
+    _logFile.addComment("");
+    _logFile.addComment("Number of Available Sensors");
     _ss.str("");
     _ss << "  Performance Counter: \t" << nPC;
-    _logfile.addComment(_ss.str());
+    _logFile.addComment(_ss.str());
     _ss.str("");
     _ss << "  Networking:          \t" << nNet;
-    _logfile.addComment(_ss.str());
+    _logFile.addComment(_ss.str());
     _ss.str("");
     _ss << "  PidStat:             \t" << nPS;
-    _logfile.addComment(_ss.str());
+    _logFile.addComment(_ss.str());
     _ss.str("");
     _ss << "  Power                \t" << nPow;
-    _logfile.addComment(_ss.str());
+    _logFile.addComment(_ss.str());
     _nofSensors = nPC + nNet + nPS + nPow;
     _ss.str("");
     _ss << "  Total                \t" << _nofSensors;
-    _logfile.addComment(_ss.str());
-    _logfile.update();
+    _logFile.addComment(_ss.str());
+    _logFile.update();
+    _logFile.addComment("");
 
 //    return sensors;
   }
@@ -367,17 +330,18 @@ namespace cea
   {
     std::stringstream ss;
 
+    ss << "  " << sensor->getName() << " [" << sensor->getAlias() << "]";
     if (sensor->getStatus())
       {
-        ss << "  " << sensor->getName() << "\t[ok]";
-        _logfile.addComment(ss.str());
+        ss << "\t[ok]";
+        _logFile.addComment(ss.str());
 
         list->push_back(sensor);
         return 1;
       }
 
-    ss << "  " << sensor->getName() << "\t[fail]";
-    _logfile.addComment(ss.str());
+    ss << "\t[fail]";
+    _logFile.addComment(ss.str());
 
     return 0;
   }
@@ -385,20 +349,16 @@ namespace cea
   void
   DataAcquisition::logHeader(std::list<Sensor*> sensor)
   {
-    std::stringstream alias_ss;
-    _ss.str("");
+    _outFile.openBlock("");
+    _outFile.write("TS");
 
-    _ss << "name time";
-    alias_ss << "alias time";
     for (std::list<Sensor*>::iterator it = sensor.begin(); it != sensor.end();
         it++)
       {
-        Sensor* sen = *it;
-        _ss << "\t" + sen->getName();
-        alias_ss << "\t" + sen->getAlias();
+        Sensor* s = *it;
+        _outFile.write(s->getAlias());
       }
-    _logfile.addComment(_ss.str());
-    _logfile.addComment(alias_ss.str());
+    _outFile.closeBlock("");
   }
 
   void
@@ -472,7 +432,7 @@ namespace cea
         da->_ss.str("");
         da->_ss << "# " << time(NULL) << "\tBenchmark ... [error] cmd ["
             << da->_benchCmd << "]" << std::endl;
-        da->_logfile.addComment(da->_ss.str());
+        da->_logFile.addComment(da->_ss.str());
 
         std::cerr << da->_ss;
 
