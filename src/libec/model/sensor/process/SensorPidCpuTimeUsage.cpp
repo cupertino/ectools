@@ -64,18 +64,7 @@ namespace cea
   {
     sensor_t val;
 
-    float f1, f2;
-    f1 = 100.0f * _cet.getValuePid(pid).U64;
-
-//f2 = _ctimePIDMap[pid].tv_sec - _ptimePIDMap[pid].tv_sec;
-//f2 += (_ctimePIDMap[pid].tv_usec - _ptimePIDMap[pid].tv_usec) / (1000000);
-//f2 *= sysconf(_SC_CLK_TCK);
-
-//better precision, more cpu consumption
-    f2 = _cet.getTotalElapsedTime();
-
-//round result
-    val.Float = (float) f1 / f2;
+    val.Float = (float) _cet.getValuePid(pid).U64 / _cet.getTotalElapsedTime();
 
     return val;
   }
@@ -88,7 +77,7 @@ namespace cea
     _cTime = time(NULL);
     _pTime = _cTime;
     _type = Float;
-    _alias = "%CPU";
+    _alias = "CPUu";
     _name = "CPU_USAGE";
     _latency = 200;
     _isActive = (access("/proc/stat", R_OK) == 0);

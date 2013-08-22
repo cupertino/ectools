@@ -231,8 +231,8 @@ namespace cea
         nNet += addSensor(&sensors, newSensor);
       }
 
-//    newSensor = new CpuTimeUsage;
-//    nCPU += addSensor(&sensors, newSensor);
+    newSensor = new CpuTimeUsage;
+    nCPU += addSensor(&sensors, newSensor);
 
     int ncpus = SystemInfo::getCpuCount();
     for (int c = 0; c < ncpus; c++)
@@ -243,28 +243,28 @@ namespace cea
         newSensor = new CpuFreq(c);
         nCPU += addSensor(&sensors, newSensor);
 
-//        newSensor = new CpuFreqMsr(c);
-//        nCPU += addSensor(&sensors, newSensor);
+        newSensor = new CpuFreqMsr(c);
+        nCPU += addSensor(&sensors, newSensor);
 
         newSensor = new CpuTemp(c);
         nCPU += addSensor(&sensors, newSensor);
 
-//        newSensor = new CpuStateMsr(c);
-//        nCPU += addSensor(&sensors, newSensor);
+        newSensor = new CpuStateMsr(c);
+        nCPU += addSensor(&sensors, newSensor);
 
-//        int nstates = CpuStateTime::getNumberofStates();
-//        for (int s = 0; s < nstates; s++)
-//          {
-//            newSensor = new CpuStateTimeElapsed(s, c);
-//            nCPU += addSensor(&sensors, newSensor);
-//          }
+        int nstates = CpuStateTime::getNumberofStates();
+        for (int s = 0; s < nstates; s++)
+          {
+            newSensor = new CpuStateTimeElapsed(s, c);
+            nCPU += addSensor(&sensors, newSensor);
+          }
       }
 
-//    newSensor = new MemRss;
-//    nCPU += addSensor(&sensors, newSensor);
+    newSensor = new MemRss;
+    nCPU += addSensor(&sensors, newSensor);
 
-//    newSensor = new MemUsage;
-//    nCPU += addSensor(&sensors, newSensor);
+    newSensor = new MemUsage;
+    nCPU += addSensor(&sensors, newSensor);
 
     // Power sensors
     newSensor = new G5kPowerMeter();

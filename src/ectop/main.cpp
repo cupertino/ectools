@@ -47,13 +47,21 @@ addSensors(MonitorEctop &m)
 
 //real case monitoring
   m.addPowerMeter(new AcpiPowerMeter());
-  m.addCpuSensor(new PidStat(PidStat::CPU_USAGE));
+  m.addCpuSensor(new CpuTimeUsage());
 
-  m.addSensor(new CpuTime());
+  m.addSensor(new PerfCount(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_CPU_CLOCK, 0));
+  m.addSensor(new PerfCount(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_CPU_CLOCK, 1));
+  m.addSensor(new PerfCount(PERF_TYPE_SOFTWARE, PERF_COUNT_SW_CPU_CLOCK, -1));
+  m.addSensor(new PerfCount(PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES, -1));
+  m.addSensor(
+      new PerfCount(PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS, -1));
+//  m.addSensor(new CpuTime());
   m.addSensor(new CpuElapsedTime());
 
-  m.addSensor(new PidStat(PidStat::CPU_USAGE));
-  m.addSensor(new PidStat(PidStat::RESIDENT_SET_SIZE));
+  m.addSensor(new CpuTimeUsage());
+  m.addSensor(new MemRss());
+  m.addSensor(new MemUsage());
+  m.addSensor(new DiskIO("sda"));
   m.addSensor(new MinMaxCpu(22, 55));
 //  m.addSensor(new MinMaxCpu2(new CpuElapsedTime(), 22, 55));
 //  m.addSensor(new InverseCpu(new AcpiPowerMeter(), new CpuElapsedTime()));
@@ -97,13 +105,15 @@ renderHeader(TermGridView &view, MonitorEctop &m)
   ss << view.getRowViewCount();
   if (m.pow != NULL)
     {
+      m.pow->update();
       ss << ", Power (W): ";
       ss << m.pow->getValue().Float;
     }
   if (m.cpu != NULL)
     {
+      m.cpu->update();
       ss << ", CPU (%):";
-      ss << m.cpu->getValuePid(-1).Float;
+      ss << m.cpu->getValue().Float;
     }
   Console::drawText(ss.str(), 0, 1);
 

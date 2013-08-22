@@ -17,7 +17,7 @@ namespace cea
   class DPELinearRegression : public cea::DynamicPowerEstimator
   {
   public:
-    DPELinearRegression(PowerMeter &pm, int params, double *weights = NULL);
+    DPELinearRegression(int params, double *weights = NULL, PowerMeter *pm = NULL);
     virtual
     ~DPELinearRegression();
 

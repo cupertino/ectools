@@ -14,7 +14,7 @@ namespace cea
 {
 
   DPELRCpuMem::DPELRCpuMem(PowerMeter &pm, double* weights) :
-      DPELinearRegression(pm, 3, weights), _cpu0_freq(0), _cpu1_freq(1)
+      DPELinearRegression(3, weights, &pm), _cpu0_freq(0), _cpu1_freq(1)
 //      , _cpu0_temp(0), _cpu1_temp(1)
   {
     _sensors.add(_cpu_usage);

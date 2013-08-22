@@ -41,6 +41,9 @@ namespace cea
     int
     countSamples();
 
+    std::string toJson() const;
+    std::string toXml() const;
+
     friend std::ostream&
     operator<<(std::ostream& os, const LinearRegression &lr);
 

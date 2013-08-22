@@ -14,6 +14,8 @@
 #include "estimator/EstimatorObserver.h"
 
 /* Estimator */
+#include "estimator/DPELRCpu.h"
+#include "estimator/PEInverseCpu.h"
 #include "estimator/PEInverseCpu.h"
 #include "estimator/PEInverseCpu2.h"
 #include "estimator/PEMinMaxCpu.h"

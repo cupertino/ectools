@@ -23,14 +23,13 @@
 namespace cea
 {
   long
-  perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
-                  int cpu, int group_fd, unsigned long flags)
+  perf_event_open(struct perf_event_attr *hw_event, pid_t pid, int cpu,
+      int group_fd, unsigned long flags)
   {
-      int ret;
+    int ret;
 
-      ret = syscall(__NR_perf_event_open, hw_event, pid, cpu,
-                     group_fd, flags);
-      return ret;
+    ret = syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
+    return ret;
   }
 
   uint
@@ -52,8 +51,9 @@ namespace cea
     // type and config inputs
 
     static std::string hwAlias[] =
-      { "HCPUCycl", "HCPUInst", "HCRefs  ", "HCMisses", "HBraInst", "HBraMiss",
-          "HBusCycl", "HStaCycF", "HStaCycB", "RefCPUCy" };
+      { "PC_HCpuCycl", "PC_HCpuInst", "PC_HCacRefs", "PC_HCacMisses",
+          "PC_HBraInst", "PC_HBraMiss", "PC_HBusCycl", "PC_HStaCycF",
+          "PC_HStaCycB", "PC_RefCpuCycl" };
 
     static std::string swName[] =
       { "PERF_COUNT_SW_CPU_CLOCK", "PERF_COUNT_SW_TASK_CLOCK",
@@ -63,7 +63,8 @@ namespace cea
           "PERF_COUNT_SW_EMULATION_FAULTS" };
 
     static std::string swAlias[] =
-      { "SCCk", "STCk", "SPFl", "SCSw", "SCMg", "SPMn", "SPMj", "SAlF", "SEmF" };
+      { "PC_SCpuClk", "PC_STskClk", "PC_SPgFlt", "PC_SCntSw", "PC_SCpuMig",
+          "PC_SPgFltMn", "PC_SPgFltMj", "PC_SAligFlt", "PC_SEmFlt" };
 
     static std::string hwCacheName[] =
       { "PERF_COUNT_HW_CACHE_L1D", "PERF_COUNT_HW_CACHE_L1I",
@@ -320,7 +321,6 @@ namespace cea
     sensor_t ret;
 
     add(pid);
-    updatePid(pid);
     ret.U64 = _pidMap[pid].cVal - _pidMap[pid].pVal;
 
     return ret;

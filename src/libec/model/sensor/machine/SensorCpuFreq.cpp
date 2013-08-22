@@ -176,10 +176,11 @@ namespace cea
     _filepath = cpufreq + "cpuinfo_cur_freq";
     if (access(_filepath.c_str(), R_OK) == -1)
       {
-        DebugLog::cout << "error: Sensor " << _name
-            << " could not access the file " << _filepath
+        std::stringstream ss;
+        ss << "Sensor " << _name << " could not access the file " << _filepath
             << ". Make sure you have cpufreq-utils package installed and you "
-                "have the proper permissions to acces the file.\n";
+                "have the proper permissions to acces the file.";
+        DebugLog::writeMsg(DebugLog::ERROR, "CpuFreq", ss.str().c_str());
         return false;
       }
 
@@ -231,10 +232,11 @@ namespace cea
       }
     else
       {
-        DebugLog::cout << "warning: Sensor " << _name
-            << " could not access the file " << cpufreq
+        std::stringstream ss;
+        ss << "Sensor " << _name << " could not access the file " << cpufreq
             << ". Make sure you have cpufreq-utils package installed. Using "
-            << _latency << " (ms) as sensor's latency.\n";
+            << _latency << " (ms) as sensor's latency.";
+        DebugLog::writeMsg(DebugLog::WARNING, "CpuFreq", ss.str().c_str());
       }
     return min;
   }

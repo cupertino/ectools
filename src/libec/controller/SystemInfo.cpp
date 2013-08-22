@@ -18,12 +18,13 @@ namespace cea
   pid_t SystemInfo::pid_max;
   CpuElapsedTime SystemInfo::cpuElapsedTime;
   int SystemInfo::procCounter;
+  int SystemInfo::runAsRoot;
 //  LinuxProcessEnumerator SystemInfo::procEnum;
 
   void
   SystemInfo::init()
   {
-
+    runAsRoot = !getuid();
     uname_ret = uname(&uname_buf);
 
     size_t hostname_len = sysconf(_SC_HOST_NAME_MAX);
@@ -91,6 +92,12 @@ namespace cea
     return cpuInfo.getCpuCount();
   }
 
+  CpuInfo*
+  SystemInfo::getCpuInfo()
+  {
+    return &cpuInfo;
+  }
+
   int
   SystemInfo::getCpuDies()
   {
@@ -153,4 +160,11 @@ namespace cea
   {
     return pid_max;
   }
+
+  int
+  SystemInfo::isRootUser()
+  {
+    return runAsRoot;
+  }
+
 }

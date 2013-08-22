@@ -170,6 +170,7 @@ namespace cea
     _type = Unknown;
     _cTime = _pTime = 0;
     _cTimeval.tv_sec = _cTimeval.tv_usec = 0;
+    _needRoot = false;
 //    _cTime = _pTime = time(NULL);
 //    gettimeofday(&_cTimeval, NULL);
   }

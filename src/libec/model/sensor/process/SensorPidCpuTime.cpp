@@ -133,7 +133,6 @@ namespace cea
   {
     sensor_t val;
 
-    updatePid(pid);
     val.U64 = _cpValue;
 
     return val;

@@ -116,7 +116,7 @@ namespace cea
     writeHeader();
 
     static void
-    writeMsg(MsgType type, std::string classname, std::string msg);
+    writeMsg(MsgType type, const char* classname, const char* format, ...);
 
     /// @brief Clear the log only work with Type::FILE
     static void

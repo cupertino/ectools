@@ -92,6 +92,7 @@ namespace cea
     if (pid > 0)
       {
         _pvPIDMap[pid].U64 = _cvPIDMap[pid].U64;
+        _ct.updatePid(pid);
         _cvPIDMap[pid].U64 = _ct.getValuePid(pid).U64;
       }
     else
@@ -191,7 +192,6 @@ namespace cea
   {
     sensor_t val;
 
-    updatePid(pid);
     val.U64 = _cvPIDMap[pid].U64 - _pvPIDMap[pid].U64;
 
     return val;

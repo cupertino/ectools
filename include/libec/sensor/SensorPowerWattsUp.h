@@ -2,7 +2,7 @@
  * SensorPowerWattsUp.h
  *
  *  Created on: Jul 22, 2013
- *      Author: adminuser
+ *      Author: Miguel Ferreira (https://github.com/miguelaferreira)
  */
 
 #ifndef SENSORPOWERWATTSUP_H_
@@ -32,6 +32,9 @@ namespace cea
 
     void
     update();
+
+    void
+    experiment();
 
   private:
     enum WuCmdStatus

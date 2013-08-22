@@ -146,6 +146,9 @@ namespace cea
     /// Status
     bool _isActive;
 
+    /// Defines if the sensor need to be run as root user
+    bool _needRoot;
+
     /// Current value
     sensor_t _cValue;
 

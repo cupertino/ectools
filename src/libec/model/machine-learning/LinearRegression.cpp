@@ -52,9 +52,10 @@ namespace cea
       return false;
     }
 
-  int LinearRegression::countSamples()
+  int
+  LinearRegression::countSamples()
   {
-    return ((int)_input.size1());
+    return ((int) _input.size1());
   }
 
   bool
@@ -64,8 +65,6 @@ namespace cea
     DebugLog::writeMsg(DebugLog::INFO,
         "LinearRegression::solve(double *weights)", "-- in");
 #endif
-
-
 
     int size = _input.size1();
     boost::numeric::ublas::matrix<double> Xtrans(_params + 1, size);
@@ -90,31 +89,27 @@ namespace cea
     if (_params == 1)
       {
 #if DEBUG
-        DebugLog::cout
-            << "  inv(X'X): -- in   invertMatrixSize2(XtransX, XtransXinv)"
-            << DebugLog::endl;
+        DebugLog::writeMsg(DebugLog::INFO, "LinearRegression::solve()",
+            "inv(X'X): -- in   invertMatrixSize2(XtransX, XtransXinv)");
 #endif
         if (!invertMatrixSize2(XtransX, XtransXinv))
           return false;
 #if DEBUG
-        DebugLog::cout
-            << "  inv(X'X): -- out  invertMatrixSize2(XtransX, XtransXinv)"
-            << DebugLog::endl;
+        DebugLog::writeMsg(DebugLog::INFO, "LinearRegression::solve()",
+            "inv(X'X): -- out   invertMatrixSize2(XtransX, XtransXinv)");
 #endif
       }
     else
       {
 #if DEBUG
-        DebugLog::cout
-            << "  inv(X'X): -- in   InvertMatrix(XtransX, XtransXinv)"
-            << DebugLog::endl;
+        DebugLog::writeMsg(DebugLog::INFO, "LinearRegression::solve()",
+            "inv(X'X): -- in   InvertMatrix(XtransX, XtransXinv)");
 #endif
         if (!InvertMatrix(XtransX, XtransXinv))
           return false;
 #if DEBUG
-        DebugLog::cout
-            << "  inv(X'X): -- out  InvertMatrix(XtransX, XtransXinv)"
-            << DebugLog::endl;
+        DebugLog::writeMsg(DebugLog::INFO, "LinearRegression::solve()",
+            "inv(X'X): -- out  InvertMatrix(XtransX, XtransXinv)");
 #endif
       }
 
@@ -166,15 +161,36 @@ namespace cea
     _row = (_row + 1) % _buffSize;
   }
 
+  std::string
+  LinearRegression::toJson() const
+  {
+    std::stringstream ss;
+    ss << "{";
+    ss << " \"params\": " << _params << ",";
+    ss << " \"buffer size\": " << _buffSize << ",";
+    ss << " \"input\": " << _input << ",";
+    ss << " \"target\": " << _target << "";
+    ss << " }";
+    return ss.str();
+  }
+
+  std::string
+  LinearRegression::toXml() const
+  {
+    std::stringstream ss;
+    ss << "<linear_regression";
+    ss << " params=" << _params;
+    ss << " buffer_size=" << _buffSize;
+    ss << " input=" << _input;
+    ss << " target=" << _target;
+    ss << "\\>";
+    return ss.str();
+  }
+
   std::ostream&
   operator<<(std::ostream& os, const LinearRegression &lr)
   {
-    os << "{";
-    os << " \"params\": " << lr._params << ",";
-    os << " \"buffer size\": " << lr._buffSize << ",";
-    os << " \"input\": " << lr._input << ",";
-    os << " \"target\": " << lr._target << "";
-    os << " }";
+    os << lr.toJson();
 
     return os;
   }

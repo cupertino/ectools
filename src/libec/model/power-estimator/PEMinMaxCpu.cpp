@@ -49,7 +49,11 @@ namespace cea
   sensor_t
   MinMaxCpu::getValuePid(pid_t pid)
   {
-    updatePid(pid);
+    _cValue.Float =
+        (_delta
+            * ((float) _sensor.getValuePid(pid).U64
+                / _sensor.getTotalElapsedTime()))
+            + (_min / SystemInfo::countProc());
 
     return _cValue;
   }
@@ -59,10 +63,7 @@ namespace cea
   {
     if (pid > 0)
       {
-        _cValue.Float = (_delta
-            * ((float) _sensor.getValuePid(pid).U64
-                / _sensor.getTotalElapsedTime()))
-            + (_min / SystemInfo::countProc());
+        _sensor.updatePid(pid);
       }
     else
       {

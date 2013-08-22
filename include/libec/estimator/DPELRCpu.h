@@ -20,6 +20,8 @@ namespace cea
   class DPELRCpu : public DPELinearRegression
   {
   public:
+    DPELRCpu();
+
     DPELRCpu(PowerMeter &pm, double* weights = NULL);
     virtual
     ~DPELRCpu();

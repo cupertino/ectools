@@ -34,7 +34,7 @@ namespace cea
   MonitorEctop::~MonitorEctop()
   {
     for (std::list<PIDSensor*>::iterator it = _sensors.begin();
-       it != _sensors.end(); it++)
+        it != _sensors.end(); it++)
       delete *it;
 
     if (pow != NULL)
@@ -77,7 +77,7 @@ namespace cea
   }
 
   void
-  MonitorEctop::addCpuSensor(PidStat* s)
+  MonitorEctop::addCpuSensor(CpuTimeUsage* s)
   {
     if (s->getStatus())
       {
@@ -118,6 +118,15 @@ namespace cea
   void
   MonitorEctop::onUpdate()
   {
+    for (ColumnList::iterator c = columns.begin(); c != columns.end(); ++c)
+      {
+        if (((*(*c)).tag == SENSOR_U64) || ((*(*c)).tag == SENSOR_FLOAT))
+          {
+            PIDSensor& s = cast<PIDSensor>(*(*c));
+            s.update();
+          }
+      }
+
     for (RowList::iterator r = rows.begin(); r != rows.end(); ++r)
       {
         if (_filter.applyFilter(*(*r)))
@@ -132,12 +141,16 @@ namespace cea
                     if ((*(*c)).tag == SENSOR_U64)
                       {
                         PIDSensor& s = cast<PIDSensor>(*(*c));
+                        s.updatePid(p.getPid());
+
                         unsigned long long val = s.getValuePid(p.getPid()).U64;
                         setValue(*(*r), *(*c), val);
                       }
                     else if ((*(*c)).tag == SENSOR_FLOAT)
                       {
                         PIDSensor& s = cast<PIDSensor>(*(*c));
+                        s.updatePid(p.getPid());
+
                         float val = s.getValuePid(p.getPid()).Float;
                         setValue(*(*r), *(*c), val);
                       }

@@ -18,7 +18,7 @@ main()
   dp = new double[2];
   dp[0] = 0;
   dp[1] = 1;
-  DPELinearRegression dpe_lr(pm, 1, dp);
+  DPELinearRegression dpe_lr(1, dp, &pm);
 
 
   std::cout << dpe_lr << std::endl;

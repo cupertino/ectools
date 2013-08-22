@@ -16,6 +16,8 @@
 #include <libec/tools/XMLReader.h>
 #include <libec/tools/DebugLog.h>
 
+#define NB_MAX_NODES 18
+
 namespace cea
 {
   const char* RecsPowerMeter::ClassName = "RecsPowerMeter";
@@ -25,10 +27,18 @@ namespace cea
   RecsPowerMeter::RecsPowerMeter(const char* servIp, int servPort, int nodeId)
   {
     _name = "RECS_POWER_METER";
-    _alias = "PM_RECS";
+    _alias = "PM_RECS" + Tools::CStr(nodeId);
     _nodeId = nodeId;
     strcpy(_servIp, servIp);
     _servPort = servPort;
+
+    for (int i = 0; i < NB_MAX_NODES; i++)
+      {
+        _nodes[i].has_board = false;
+        _nodes[i].power = 0;
+        _nodes[i].status = false;
+        _nodes[i].temp = 0;
+      }
 
     _cValue.Float = 0.0;
     _pValue.Float = 0.0;
@@ -66,6 +76,7 @@ namespace cea
         if (n < 0)
           {
             _isActive = false; // error: writing to socket
+            closeConnection();
             return;
           }
 
@@ -76,6 +87,7 @@ namespace cea
             if (n < 0)
               {
                 // error: reading from socket
+                closeConnection();
                 return;
               }
             dest[n] = '\0';
@@ -83,26 +95,31 @@ namespace cea
               break;
             dest = dest + n;
           }
-
         closeConnection();
 
         std::istringstream in(buffer);
 
         char C;
         in >> nr_baseboards >> C;
+#if DEBUG
         DebugLog::cout << "Number of baseboards: " << nr_baseboards << "\n";
+#endif
 
         for (int i = 0; i < nr_baseboards; i++)
           {
             in >> _nodes[i].has_board >> C >> _nodes[i].status >> C
                 >> _nodes[i].temp >> C >> _nodes[i].power >> C;
 
-//            printf("Baseboard %d\n", i + 1);
-//            printf("  Baseboard present: %s\n",
-//                (node_has_board[i]) ? "yes" : "no");
-//            printf("  Status: %s\n", (node_status[i]) ? "on" : "off");
-//            printf("  Temperature: %d\n", node_temp[i]);
-//            printf("  Power: %d\n", node_power[i]);
+#if DEBUG
+            DebugLog::cout << "Baseboard " << i + 1 << DebugLog::endl;
+            DebugLog::cout << "  Baseboard present: "
+                << ((_nodes[i].has_board) ? "yes" : "no") << DebugLog::endl;
+            DebugLog::cout << "  Status: "
+                << ((_nodes[i].status) ? "on" : "off") << DebugLog::endl;
+            DebugLog::cout << "  Temperature: " << _nodes[i].temp
+                << DebugLog::endl;
+            DebugLog::cout << "  Power: " << _nodes[i].power << DebugLog::endl;
+#endif
           }
 
         // Total RECS2(r) voltage
@@ -166,7 +183,6 @@ namespace cea
   short
   RecsPowerMeter::getValue(int nodeId, int typeId)
   {
-    update();
     if (typeId == 0)
       return _nodes[nodeId].power;
     else
@@ -199,3 +215,5 @@ namespace cea
   }
 
 }
+
+#undef NB_MAX_NODES

@@ -136,35 +136,54 @@ namespace cea
   {
     if (access("/sys/bus/platform/drivers/coretemp/", R_OK) == 0)
       {
-        if (_cpuId == -1)
-          {
-            // Consider that there is only one die (coretemp.0)
-            _filepath =
-                "/sys/bus/platform/drivers/coretemp/coretemp.0/temp1_input";
-
-            if (access(_filepath.c_str(), R_OK) == 0)
-              _isActive = true;
-            else
-              DebugLog::writeMsg(DebugLog::WARNING, "CpuTemp::checkIntel()",
-                  "The specified CPU has no die sensor.");
-          }
-        else
+        if (_cpuId >= 0)
           {
             std::stringstream ss;
 
             // Consider that there is only one die in and that the cpu's id start from 0
-            ss << "/sys/bus/platform/drivers/coretemp/coretemp.0/temp"
-                << _cpuId + 2 << "_input";
+            ss << "/sys/bus/platform/drivers/coretemp/coretemp." << _cpuId
+                << "/temp1_input";
 
             _filepath = ss.str();
 
             if (access(_filepath.c_str(), R_OK) == 0)
               _isActive = true;
             else
-              DebugLog::cout << "error: The specified CPU has CPU (cpuId "
-                  << _cpuId << ") sensor.\n";
-          }
+              DebugLog::cout << "error: The specified CPU (cpuId " << _cpuId
+                  << ") has no temperature CPU sensor.\n";
 
+          }
+        /* old code -- dont work on recs .. why??
+         if (_cpuId == -1)
+         {
+         // Consider that there is only one die (coretemp.0)
+         _filepath =
+         "/sys/bus/platform/drivers/coretemp/coretemp.0/temp1_input";
+
+         if (access(_filepath.c_str(), R_OK) == 0)
+         _isActive = true;
+         else
+         DebugLog::writeMsg(DebugLog::WARNING, "CpuTemp::checkIntel()",
+         "The specified CPU has no die sensor.");
+         }
+         else
+         {
+         std::stringstream ss;
+
+         // Consider that there is only one die in and that the cpu's id start from 0
+         ss << "/sys/bus/platform/drivers/coretemp/coretemp.0/temp"
+         << _cpuId + 2 << "_input";
+
+         _filepath = ss.str();
+
+         if (access(_filepath.c_str(), R_OK) == 0)
+         _isActive = true;
+         else
+         DebugLog::cout << "error: The specified CPU has CPU (cpuId "
+         << _cpuId << ") sensor.\n";
+         }
+         *
+         */
         // Intel CPU's temperature sensor exists
         return true;
       }

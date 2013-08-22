@@ -5,7 +5,6 @@
  *      Author: Leandro
  */
 
-// REVIEWED (Dec 4 2012)
 #ifndef SENSORPID_CPUTIMEELAPSED_H__
 #define SENSORPID_CPUTIMEELAPSED_H__
 

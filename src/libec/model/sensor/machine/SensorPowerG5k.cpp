@@ -434,9 +434,8 @@ namespace cea
     if (it == _hostPduMap.end())
       {
         // Hostname not mapped
-        cea::DebugLog::cout << cea::Tools::nowToString()
-            << ": <error> The specified hostname is has "
-                "no wattmeter or is not supported by this class.\n";
+        cea::DebugLog::writeMsg(cea::DebugLog::ERROR, "G5KPowerMeter",
+            "The specified hostname has no wattmeter or is not supported by this class.");
         return "";
       }
 

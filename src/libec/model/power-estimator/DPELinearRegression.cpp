@@ -15,22 +15,20 @@
 
 namespace cea
 {
-
-  DPELinearRegression::DPELinearRegression(PowerMeter &pm, int params,
-      double *weights) :
+  DPELinearRegression::DPELinearRegression(int params, double *weights,
+      PowerMeter *pm) :
       _lr(params, 1, 100)
   {
     _weights = NULL;
     clean();
 
-    _pm = &pm;
+    _pm = pm;
     _weights = new double[params + 1];
     _params = params;
 
     if (params < 1)
-      DebugLog::writeMsg(DebugLog::ERROR,
-          std::string("DPELinearRegression::constructor()"),
-          std::string("invalid number of parameters"));
+      DebugLog::writeMsg(DebugLog::ERROR, "DPELinearRegression::constructor()",
+          "Invalid number of parameters");
 
     if (weights != NULL)
       {
@@ -56,7 +54,8 @@ namespace cea
       _lr.solve(_weights);
     else
       DebugLog::writeMsg(DebugLog::WARNING, "DPELinearRegression::calibrate()",
-          "The number of samples is too low. The weights will not be calibrated.");
+          "The number of samples (%d) is too low. The weights will not be calibrated.",
+          _lr.countSamples());
 
 #if DEBUG
     DebugLog::writeMsg(DebugLog::INFO, "DPELinearRegression::calibrate()",
@@ -77,8 +76,7 @@ namespace cea
     if (_pm == NULL)
       {
         DebugLog::writeMsg(DebugLog::ERROR,
-            std::string("DPELinearRegression::collectData"),
-            std::string("No power meter available"));
+            "DPELinearRegression::collectData()", "No power meter available");
         return;
       }
 
@@ -122,7 +120,7 @@ namespace cea
                 float f = (*it)->getValue().Float;
                 inputs[i] = f;
                 DebugLog::cout << "  sensor (float): " << inputs[i]
-                    << DebugLog::endl;
+                << DebugLog::endl;
 #else
                 inputs[i] = (*it)->getValue().Float;
 #endif
@@ -140,7 +138,7 @@ namespace cea
 
 #if DEBUG
             DebugLog::cout << "  input[" << i << "]: " << inputs[i]
-                << DebugLog::endl;
+            << DebugLog::endl;
 #endif
 
             i++;
@@ -153,10 +151,10 @@ namespace cea
 
 #if DEBUG
         DebugLog::cout << "  iteration elapsed time (ms): " << ielapsed
-            << DebugLog::endl;
+        << DebugLog::endl;
 
         DebugLog::cout << "  total elapsed time (ms):     " << elapsed
-            << DebugLog::endl;
+        << DebugLog::endl;
 #endif
 
         if (ielapsed < _latency)
@@ -284,7 +282,7 @@ namespace cea
             std::stringstream ss;
             ss << s.substr(found_w).substr(found_ws + 1, found_we - found_ws);
             char c = ',';
-            for (int i = 0; i < cPoint._params; i++)
+            for (int i = 0; i < cPoint._params + 1; i++)
               {
                 ss >> cPoint._weights[i];
                 ss >> c;

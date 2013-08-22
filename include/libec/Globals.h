@@ -11,8 +11,8 @@
 #ifndef LIBEC_GLOBALS_H__
 #define LIBEC_GLOBALS_H__
 
-//#define DEBUG 0
-#define DEBUG 1
+#define DEBUG 0
+//#define DEBUG 1
 
 #include <sstream>
 

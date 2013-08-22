@@ -11,7 +11,7 @@ namespace cea
 {
 
   DPELRCpuProcs::DPELRCpuProcs(PowerMeter &pm, double* weights) :
-      DPELinearRegression(pm, 2, weights), rp(1)
+      DPELinearRegression(2, weights, &pm), rp(1)
   {
     this->_sensors.add(ctu);
     this->_sensors.add(rp);

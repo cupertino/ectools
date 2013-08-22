@@ -91,6 +91,10 @@ namespace cea
     static pid_t
     getPidMax();
 
+    /// \brief Retrieves if the program is running by the root user
+    static int
+    isRootUser();
+
   private:
     static bool isStarted;
     static CpuInfo cpuInfo;
@@ -101,6 +105,7 @@ namespace cea
     static pid_t pid_max;
     static CpuElapsedTime cpuElapsedTime;
     static int procCounter;
+    static int runAsRoot;
   };
 }
 

@@ -12,15 +12,16 @@ namespace cea
 
   DynamicPowerEstimator::DynamicPowerEstimator()
   {
+    _pm = NULL;
+    _calib = NULL;
   }
 
   DynamicPowerEstimator::DynamicPowerEstimator(PowerMeter *pm, Calibrator *c)
   {
     _pm = pm;
+    _calib = c;
 
     this->_isActive = pm->getStatus();
-
-    _calib = c;
   }
 
   DynamicPowerEstimator::~DynamicPowerEstimator()

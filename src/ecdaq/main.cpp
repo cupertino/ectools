@@ -35,23 +35,19 @@ main(int argc, char *argv[])
 {
   char* bench;
   std::string outfile = "ecdaq.log";
-  int idleTime = 5;
-
-  cea::SystemInfo::countProc();
+  int idleTime = 0;
 
   if (argc == 1)
     {
       usageMessage();
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   if (!strcmp(argv[1], "--help"))
     {
       usageMessage();
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
-
-  bench = argv[argc - 1];
 
   for (int i = 1; i < argc; i += 2)
     if (!strcmp(argv[i], "-o"))
@@ -61,19 +57,23 @@ main(int argc, char *argv[])
     if (!strcmp(argv[i], "-i"))
       idleTime = atoi(argv[i + 1]);
 
+  bench = argv[argc - 1];
+
   //Run the data acquisition in verbose mode
   cea::SystemInfo::init();
+  cea::SystemInfo::countProc();
 
   std::cout << "Data Acquisition ... [start]\n";
   cea::DataAcquisition daq(bench, idleTime, 1.0, outfile);
 
-  /*
   //Collect data from specific sensors
-  daq.addSensor(new cea::PidStat(cea::PidStat::CPU_USAGE));
-  daq.addSensor(new cea::CpuFrequency(0));
-  daq.addSensor(new cea::CpuFrequency(1));
-  daq.addSensor(new cea::AcpiPowerMeter());
-  */
+//  daq.addSensor(new cea::CpuTimeUsage);
+//  daq.addSensor(new cea::CpuFreq(0));
+//  daq.addSensor(new cea::CpuFreq(1));
+//  daq.addSensor(new cea::CpuTemp(0));
+//  daq.addSensor(new cea::CpuTemp(1));
+//  daq.addSensor(new cea::MemRss);
+//  daq.addSensor(new cea::PerfCount());
 
   daq.collectData();
   std::cout << "Data Acquisition ... [done]\n";

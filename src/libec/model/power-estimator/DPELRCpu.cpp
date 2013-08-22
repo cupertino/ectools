@@ -12,11 +12,20 @@
 
 namespace cea
 {
+  DPELRCpu::DPELRCpu() :
+      DPELinearRegression(1)
+  {
+    _name = "POWER_DYN_LR_CPU";
+    _alias = "DPELRCpu";
+    _sensors.add(_ctu);
+    _isActive = _ctu.getStatus();
+  }
 
   DPELRCpu::DPELRCpu(PowerMeter &pm, double* weights) :
-      DPELinearRegression(pm, 1, weights)
+      DPELinearRegression(1, weights, &pm)
   {
     _sensors.add(_ctu);
+    _isActive = _ctu.getStatus();
   }
 
   DPELRCpu::~DPELRCpu()

@@ -42,17 +42,17 @@ readFromWu(int dev_fd, char *buffer, int bufferSize)
   char tmpBuffer[bufferSize];
   memset(tmpBuffer, 0, sizeof(char) * bufferSize);
   for (int i = 0; i < wu_read_max_retry; i++)
-  {
-    ret = read(dev_fd, &tmpBuffer, bufferSize);
-    if (ret == errorValue)
     {
-      sleep(1);
+      ret = read(dev_fd, &tmpBuffer, bufferSize);
+      if (ret == errorValue)
+        {
+          sleep(1);
+        }
+      else
+        {
+          break;
+        }
     }
-    else
-    {
-      break;
-    }
-  }
 
   string tmpString = string(tmpBuffer);
   boost::algorithm::trim(tmpString);
@@ -89,11 +89,7 @@ namespace cea
     buffer = new char[bufferSize];
     deviceFileDescriptor = -1;
 
-    _name = "WATTS_UP_POWER_METER";
-    _alias = "PM_WU";
-
     _type = Float;
-    _cValue.Float = 0.0;
     _isActive = initWattsUp(wu_device);
   }
 
@@ -110,37 +106,43 @@ namespace cea
     struct stat s;
     int ret;
 
-    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter", ("Checking device file: " + wuDevice));
     const char* wuDeviceCharArray = wuDevice.c_str();
+    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter",
+        "Checking device file: %s", wuDeviceCharArray);
     ret = stat(wuDeviceCharArray, &s);
     if (ret != 0)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", ("stat() device file"));
-      return false;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            ("stat() device file"));
+        return false;
+      }
     if (!S_ISCHR(s.st_mode))
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "File is not a character device");
-      return false;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "File is not a character device");
+        return false;
+      }
     if (access(wuDeviceCharArray, R_OK | W_OK) != 0)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "Device not accessible");
-      return false;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Device not accessible");
+        return false;
+      }
 
     deviceFileDescriptor = open(wuDeviceCharArray, O_RDWR | O_NONBLOCK);
     if (deviceFileDescriptor < 0)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "Failed to open device");
-      return false;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Failed to open device");
+        return false;
+      }
 
     ret = tcgetattr(deviceFileDescriptor, &t);
     if (ret != 0)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "Failed to get device attributes");
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Failed to get device attributes");
+      }
 
     cfmakeraw(&t);
     cfsetispeed(&t, B115200);
@@ -151,34 +153,32 @@ namespace cea
     t.c_cflag &= ~CSTOPB;
     ret = tcsetattr(deviceFileDescriptor, TCSANOW, &t);
     if (ret != 0)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "Failed to set device attributes");
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Failed to set device attributes");
+      }
 
     string errorMsg;
     WattsUpPowerMeter::WuCmdStatus status;
 
     status = setDeviceToLogPower(&errorMsg);
     if (status != NO_ERROR)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
-      return false;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg.c_str());
+        return false;
+      }
 
     status = WattsUpPowerMeter::setExternalLogging(1, &errorMsg);
     if (status != NO_ERROR)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
-      return false;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg.c_str());
+        return false;
+      }
 
     usleep(1000);
 
-    while(_cValue.Float == 0) { // the first reads are usually 0
-      update();
-    }
-
-    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter", "Device ready and logging power");
+    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter",
+        "Device ready and logging power");
 
     return true;
   }
@@ -195,27 +195,217 @@ namespace cea
     float power;
     string errorMsg;
     WuCmdStatus status = readPower(&power, &errorMsg);
-
     if (status != NO_ERROR)
-    {
-      DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
-      return;
-    }
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg.c_str());
+        return;
+      }
     _cValue.Float = power;
   }
 
+  void
+  WattsUpPowerMeter::experiment()
+  {
+    struct termios t;
+    struct stat s;
+    int ret;
+
+    const char * wu_device = "/dev/ttyUSB0";
+
+    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter",
+        "Checking device file: %s", wu_device);
+
+    ret = stat(wu_device, &s);
+    if (ret != 0)
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "stat() device file: %s", wu_device);
+        return;
+      }
+    if (!S_ISCHR(s.st_mode))
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "File is not a character device");
+        return;
+      }
+    if (access(wu_device, R_OK | W_OK) != 0)
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Device not accessible");
+        return;
+      }
+
+    deviceFileDescriptor = open(wu_device, O_RDWR | O_NONBLOCK);
+    if (deviceFileDescriptor < 0)
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Failed to open device");
+        return;
+      }
+
+    ret = tcgetattr(deviceFileDescriptor, &t);
+    if (ret != 0)
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Failed to get device attributes");
+      }
+
+    cfmakeraw(&t);
+    cfsetispeed(&t, B115200);
+    cfsetospeed(&t, B115200);
+    tcflush(deviceFileDescriptor, TCIFLUSH);
+
+    t.c_iflag |= IGNPAR;
+    t.c_cflag &= ~CSTOPB;
+    ret = tcsetattr(deviceFileDescriptor, TCSANOW, &t);
+    if (ret != 0)
+      {
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter",
+            "Failed to set device attributes");
+      }
+
+    DebugLog::writeMsg(DebugLog::INFO, "WattsUpMeter", "Attributes set");
+
+    string errorMsg;
+    WattsUpPowerMeter::WuCmdStatus status;
+
+    /*
+     status = WattsUpPowerMeter::setInternalLogging(&errorMsg);
+     if (status == ERROR_REQUEST)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     printf("setInternalLogging OK\n");
+     */
+    /*
+     status = WattsUpPowerMeter::softRestart(&errorMsg);
+     if (status != NONE)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     */
+
+    /*
+     int samplingInterval = 1;
+     status = WattsUpPowerMeter::setSamplingInterval(samplingInterval, &errorMsg);
+     if (status != NONE)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     printf("setSamplingInterval OK\n");
+
+     status = getSamplingInterval(&samplingInterval, &errorMsg);
+     if (status != NONE)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     printf("Sampling interval = %d\n", samplingInterval);
+     */
+
+    /*
+     vector<string> headerRecordFields;
+     status = WattsUpPowerMeter::getHeaderRecord(headerRecordFields, &errorMsg);
+     if (status != NONE)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     printf("getHeaderRecord OK\n");
+
+     int logPower[] =
+     { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+     vector<int> logPowerVector(logPower, logPower + sizeof logPower / sizeof logPower[0]);
+     WattsUpPowerMeter::setLoggedFileds(logPowerVector, &errorMsg);
+     if (status != NONE)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     printf("setLoggedFileds OK\n");
+
+     logPowerVector.clear();
+     status = getLoggedFileds(logPowerVector, &errorMsg);
+     if (status != NONE)
+     {
+     DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", errorMsg);
+     return;
+     }
+     printf("getLoggedFileds OK\n");
+     */
+
+    status = WattsUpPowerMeter::setExternalLogging(1, &errorMsg);
+    if (status != NO_ERROR)
+      {
+        string errorType;
+        if (status == ERROR_REQUEST)
+          {
+            errorType = "REQUEST";
+          }
+        else
+          {
+            errorType = "REPLY";
+          }
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "%s :: %s",
+            errorType.c_str(), errorMsg.c_str());
+        return;
+      }
+
+    for (int i = 0; i < 5; i++)
+      {
+        ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
+        if (ret == errorValue)
+          {
+            printf("Error\n");
+          }
+        printf("B[%d]: %s\n", (int) strlen(buffer), buffer);
+      }
+
+    printf("stopping log\n");
+    status = WattsUpPowerMeter::setInternalLogging(1, &errorMsg);
+    if (status != NO_ERROR)
+      {
+        string errorType;
+        if (status == ERROR_REQUEST)
+          {
+            errorType = "REQUEST";
+          }
+        else
+          {
+            errorType = "REPLY";
+          }
+        DebugLog::writeMsg(DebugLog::ERROR, "WattsUpMeter", "%s :: %s",
+            errorType.c_str(), errorMsg.c_str());
+        return;
+      }
+    printf("setInternalLogging OK\n");
+
+    while (1)
+      {
+        ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
+        if (ret == errorValue)
+          {
+            printf("Error\n");
+          }
+        printf("B[%d]: %s\n", (int) strlen(buffer), buffer);
+      }
+
+  }
 
   WattsUpPowerMeter::WuCmdStatus
   WattsUpPowerMeter::sendRequestToWu(string cmd)
   {
     if (writeToWu(deviceFileDescriptor, cmd.c_str(), cmd.length()) == -1)
-    {
-      return ERROR_REQUEST;
-    }
+      {
+        return ERROR_REQUEST;
+      }
     else
-    {
-      return NO_ERROR;
-    }
+      {
+        return NO_ERROR;
+      }
   }
 
   WattsUpPowerMeter::WuCmdStatus
@@ -223,38 +413,39 @@ namespace cea
   {
     int ret = writeToWu(deviceFileDescriptor, cmd.c_str(), cmd.length());
     if (ret == errorValue)
-    {
-      return ERROR_REQUEST;
-    }
+      {
+        return ERROR_REQUEST;
+      }
 
     ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
     if (ret == errorValue)
-    {
-      return ERROR_REPLY;
-    }
+      {
+        return ERROR_REPLY;
+      }
     *reply = buffer;
 
     return NO_ERROR;
   }
 
   WattsUpPowerMeter::WuCmdStatus
-  WattsUpPowerMeter::sendRequestToWuAndReadReplies(string cmd, unsigned int replyCount, vector<string> *replies)
+  WattsUpPowerMeter::sendRequestToWuAndReadReplies(string cmd,
+      unsigned int replyCount, vector<string> *replies)
   {
     int ret = writeToWu(deviceFileDescriptor, cmd.c_str(), cmd.length());
     if (ret == errorValue)
-    {
-      return ERROR_REQUEST;
-    }
+      {
+        return ERROR_REQUEST;
+      }
 
     for (unsigned int i = 0; i < replyCount; i++)
-    {
-      ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
-      if (ret == errorValue)
       {
-        return ERROR_REPLY;
+        ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
+        if (ret == errorValue)
+          {
+            return ERROR_REPLY;
+          }
+        replies->push_back(string(buffer));
       }
-      replies->push_back(string(buffer));
-    }
 
     return NO_ERROR;
   }
@@ -266,11 +457,12 @@ namespace cea
     sstm << "#S,W,2,_," << interval << ";";
     string setSamplingIntervalCmd = sstm.str();
 
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(setSamplingIntervalCmd);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(
+        setSamplingIntervalCmd);
     if (status == ERROR_REQUEST)
-    {
-      *errorMsg = "Failed to set sampling interval";
-    }
+      {
+        *errorMsg = "Failed to set sampling interval";
+      }
 
     return status;
   }
@@ -281,11 +473,12 @@ namespace cea
     const char* failedToGetSamplingInterval = "Failed to get sampling interval";
     string getSamplingIntervalCmd = "#S,R,0;";
     string reply;
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(getSamplingIntervalCmd, &reply);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(
+        getSamplingIntervalCmd, &reply);
     if (status != NO_ERROR)
-    {
-      *errorMsg = failedToGetSamplingInterval;
-    }
+      {
+        *errorMsg = failedToGetSamplingInterval;
+      }
     printf("Getting one value from reply\n");
     std::string intervalStr = getOneValueFromReply(reply, 4);
     printf("intervalString = %s\n", intervalStr.c_str());
@@ -294,20 +487,23 @@ namespace cea
   }
 
   WattsUpPowerMeter::WuCmdStatus
-  WattsUpPowerMeter::getHeaderRecord(vector<string> headerRecord, string *errorMsg)
+  WattsUpPowerMeter::getHeaderRecord(vector<string> headerRecord,
+      string *errorMsg)
   {
     const char* failedToGetHeaderRecord = "Failed to get header record";
     string getHeaderRecordCmd = "#H,R,0;";
     string reply;
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(getHeaderRecordCmd, &reply);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(
+        getHeaderRecordCmd, &reply);
     if (status != NO_ERROR)
-    {
-      *errorMsg = failedToGetHeaderRecord;
-    }
+      {
+        *errorMsg = failedToGetHeaderRecord;
+      }
     int headerRecordIndexes[18] =
-    { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
+      { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
     vector<int> positionstoGet(headerRecordIndexes,
-        headerRecordIndexes + sizeof headerRecordIndexes / sizeof headerRecordIndexes[0]);
+        headerRecordIndexes
+            + sizeof headerRecordIndexes / sizeof headerRecordIndexes[0]);
     vector<string> values = getMultipleValuesFromReply(reply, positionstoGet);
     headerRecord.insert(headerRecord.end(), values.begin(), values.end());
 
@@ -322,20 +518,21 @@ namespace cea
     sstm << "#C,W,";
     sstm << loggedFields.size() << ",";
     for (size_t i = 0; i < loggedFields.size(); ++i)
-    {
-      sstm << loggedFields.at(i);
-      sstm << ",";
-    }
+      {
+        sstm << loggedFields.at(i);
+        sstm << ",";
+      }
     string setLoggedFieldsCmd = sstm.str();
     setLoggedFieldsCmd.erase(setLoggedFieldsCmd.size() - 1);
     setLoggedFieldsCmd += ";";
 
     string reply;
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(setLoggedFieldsCmd, &reply);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(
+        setLoggedFieldsCmd, &reply);
     if (status != NO_ERROR)
-    {
-      *errorMsg = failedToSetLoggedFilds;
-    }
+      {
+        *errorMsg = failedToSetLoggedFilds;
+      }
     return status;
   }
 
@@ -345,11 +542,12 @@ namespace cea
     const char* failedToGetLoggedFilds = "Failed to get logged fields";
     string getLoggedFieldsCmd = "#C,R,0;";
     string reply;
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(getLoggedFieldsCmd, &reply);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(
+        getLoggedFieldsCmd, &reply);
     if (status == ERROR_REQUEST)
-    {
-      *errorMsg = failedToGetLoggedFilds;
-    }
+      {
+        *errorMsg = failedToGetLoggedFilds;
+      }
     return status;
   }
 
@@ -360,9 +558,9 @@ namespace cea
     string getHeaderRecordCmd = "#R,W,0;";
     WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(getHeaderRecordCmd);
     if (status == ERROR_REQUEST)
-    {
-      *errorMsg = failedToResetMemory;
-    }
+      {
+        *errorMsg = failedToResetMemory;
+      }
     return status;
   }
 
@@ -373,9 +571,9 @@ namespace cea
     string getHeaderRecordCmd = "#V,W,0;";
     WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(getHeaderRecordCmd);
     if (status == ERROR_REQUEST)
-    {
-      *errorMsg = failedToSoftRestart;
-    }
+      {
+        *errorMsg = failedToSoftRestart;
+      }
     return status;
   }
 
@@ -384,11 +582,12 @@ namespace cea
   {
     const char* failedToResetMemory = "Failed to terminate transaction";
     string terminateTransactionCmd = "\x018";
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(terminateTransactionCmd);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(
+        terminateTransactionCmd);
     if (status == ERROR_REQUEST)
-    {
-      *errorMsg = failedToResetMemory;
-    }
+      {
+        *errorMsg = failedToResetMemory;
+      }
     return status;
   }
 
@@ -401,19 +600,20 @@ namespace cea
     string setExternalLogging = sstm.str();
 
     string reply;
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(setExternalLogging, &reply);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReply(
+        setExternalLogging, &reply);
     if (status != NO_ERROR)
-    {
-      *errorMsg = failedToSetInternalLogging;
-    }
+      {
+        *errorMsg = failedToSetInternalLogging;
+      }
     printf("REPLY TO SET INTERNAL LOGGING: '%s'\n", reply.c_str());
 
     return status;
   }
 
   WattsUpPowerMeter::WuCmdStatus
-  WattsUpPowerMeter::setExternalLoggingAndCollectData(int interval, int replyCount, vector<string> *data,
-      string *errorMsg)
+  WattsUpPowerMeter::setExternalLoggingAndCollectData(int interval,
+      int replyCount, vector<string> *data, string *errorMsg)
   {
     const char* failedToSetExternalLogging = "Failed to set external logging";
 
@@ -421,11 +621,12 @@ namespace cea
     sstm << "#L,W,3,E,0," << interval << ";";
     string setExternalLogging = sstm.str();
 
-    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReplies(setExternalLogging, replyCount, data);
+    WattsUpPowerMeter::WuCmdStatus status = sendRequestToWuAndReadReplies(
+        setExternalLogging, replyCount, data);
     if (status != NO_ERROR)
-    {
-      *errorMsg = failedToSetExternalLogging;
-    }
+      {
+        *errorMsg = failedToSetExternalLogging;
+      }
 
     return status;
   }
@@ -441,9 +642,9 @@ namespace cea
 
     WattsUpPowerMeter::WuCmdStatus status = sendRequestToWu(setExternalLogging);
     if (status != NO_ERROR)
-    {
-      *errorMsg = failedToSetExternalLogging;
-    }
+      {
+        *errorMsg = failedToSetExternalLogging;
+      }
 
     return status;
   }
@@ -452,8 +653,9 @@ namespace cea
   WattsUpPowerMeter::setDeviceToLogPower(string *errorMsg)
   {
     int logPower[] =
-    { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    vector<int> logPowerVector(logPower, logPower + sizeof logPower / sizeof logPower[0]);
+      { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    vector<int> logPowerVector(logPower,
+        logPower + sizeof logPower / sizeof logPower[0]);
     return WattsUpPowerMeter::setLoggedFileds(logPowerVector, errorMsg);
   }
 
@@ -464,21 +666,23 @@ namespace cea
 
     *power = -1;
     for (int i = 0; i < wu_read_max_retry; i++)
-    {
-      int ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
-      if (ret == errorValue)
       {
-        *errorMsg = failedToReadPower;
-        return ERROR_READ;
-      }
-      string powerStr = getOneValueFromReply(string(buffer), power_value_index);
-      *power = atof(powerStr.c_str());
-      *power = *power / power_factor;
+        int ret = readFromWu(deviceFileDescriptor, buffer, bufferSize);
+        if (ret == errorValue)
+          {
+            *errorMsg = failedToReadPower;
+            return ERROR_READ;
+          }
+        string powerStr = getOneValueFromReply(string(buffer),
+            power_value_index);
+        *power = atof(powerStr.c_str());
+        *power = *power / power_factor;
 
-      if(*power > 0) {
-        break;
+        if (*power > 0)
+          {
+            break;
+          }
       }
-    }
     return NO_ERROR;
   }
 
@@ -486,36 +690,37 @@ namespace cea
   WattsUpPowerMeter::getOneValueFromReply(string reply, int positionToGet)
   {
     vector<int> positionsToGet(1, positionToGet);
-    vector<string> positions = getMultipleValuesFromReply(reply, positionsToGet);
+    vector<string> positions = getMultipleValuesFromReply(reply,
+        positionsToGet);
     if (positions.size() > 0)
-    {
-      return positions.at(0);
-    }
+      {
+        return positions.at(0);
+      }
     else
-    {
-      return string("");
-    }
+      {
+        return string("");
+      }
   }
 
   vector<string>
-  WattsUpPowerMeter::getMultipleValuesFromReply(string reply, vector<int> positionsToGet)
+  WattsUpPowerMeter::getMultipleValuesFromReply(string reply,
+      vector<int> positionsToGet)
   {
     vector<string> positions;
     if (!reply.empty())
-    {
-      reply.erase(0, 1);
-      reply.erase(reply.size() - 1, 1);
-      vector<string> parts;
-      boost::split(parts, reply, boost::is_any_of(wu_result_delim));
-      for (vector<int>::size_type i = 0; i < positionsToGet.size(); i++)
       {
-        int position = positionsToGet.at(i);
-        positions.push_back(parts.at(position));
+        reply.erase(0, 1);
+        reply.erase(reply.size() - 1, 1);
+        vector<string> parts;
+        boost::split(parts, reply, boost::is_any_of(wu_result_delim));
+        for (vector<int>::size_type i = 0; i < positionsToGet.size(); i++)
+          {
+            int position = positionsToGet.at(i);
+            positions.push_back(parts.at(position));
+          }
       }
-    }
 
     return positions;
   }
 
 }
-

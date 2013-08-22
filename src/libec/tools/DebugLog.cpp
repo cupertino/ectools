@@ -1,5 +1,6 @@
 #include <libec/tools/DebugLog.h>
 #include <libec/tools/Tools.h>
+#include <cstdarg>
 
 namespace cea
 {
@@ -116,8 +117,12 @@ namespace cea
   }
 
   void
-  DebugLog::writeMsg(MsgType type, std::string classname, std::string msg)
+  DebugLog::writeMsg(MsgType type, const char* classname, const char* format,
+      ...)
   {
+    char buffer[256];
+    va_list args;
+
     cout << classname << ": ";
     switch (type)
       {
@@ -133,7 +138,11 @@ namespace cea
     default:
       break;
       }
-    cout << msg << endl;
+
+    va_start(args, format);
+    vsprintf(buffer, format, args);
+    cout << buffer << endl;
+    va_end(args);
   }
 
   /** Clear the log */

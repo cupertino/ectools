@@ -37,7 +37,7 @@ namespace cea
     bool debugMode; ///< Debug staus (True = active)
     bool isFreezed; ///< Pause status (True = is paused)
     PowerMeter* pow; ///< Power Meter used to evaluate estimator's error
-    PidStat* cpu; ///< Cpu information from /proc/\<pid\>/stat file
+    CpuTimeUsage* cpu; ///< Cpu information from /proc/\<pid\>/stat file
     Log jsonLog; ///< json file output (updated each timestep)
 
     // Column tags
@@ -59,7 +59,7 @@ namespace cea
     void addPowerMeter(PowerMeter* p);
 
     /** Add a CPU Sensor to be monitored at node level */
-    void addCpuSensor(PidStat* s);
+    void addCpuSensor(CpuTimeUsage* s);
 
     /** Event launched after a row being created */
     void

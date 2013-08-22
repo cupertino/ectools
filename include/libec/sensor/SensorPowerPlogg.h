@@ -12,7 +12,6 @@
 
 namespace cea
 {
-
   class PloggPowerMeter : public cea::PowerMeter
   {
   public:
