@@ -36,7 +36,7 @@ rebuild: clean build
 # ---------------- Compiles the Demos ----------------
 
 # include directories
-INCLUDES = -I../include/ -I$(KERNEL_SRC)/tools/perf
+INCLUDES = -I../include/
 
 # library paths
 LIBS = -L../bin/ -lec -lpthread -lncurses -lrt
@@ -54,7 +54,7 @@ build_demos:
 	$(ECHO) "  CC      $(OUT)/ectop_case_demo"
 	$(QUIET) $(CC) $(INCLUDES) $(CCFLAGS) ../src/ectop/model/MonitorEctop.cpp ectop_case.cpp -o $(OUT)/ectop_case_demo $(LIBS)
 	$(ECHO) "  CC      $(OUT)/ecdaq_case_demo"
-	$(QUIET) $(CC) $(INCLUDES) $(CCFLAGS) ../src/ectop/model/MonitorEctop.cpp ecdaq_case.cpp -o $(OUT)/ecdaq_case_demo $(LIBS)
+	$(QUIET) $(CC) $(INCLUDES) $(CCFLAGS) ecdaq_case.cpp -o $(OUT)/ecdaq_case_demo $(LIBS)
 	$(ECHO) "  CC      $(OUT)/dynamic_estimator_demo_daemon"
 	$(QUIET) $(CC) $(INCLUDES) $(CCFLAGS) dynamic_estimator_daemon.cpp -o $(OUT)/dynamic_estimator_demo_daemon $(LIBS)
 	$(ECHO) "  CP      $(OUT)/dynamic_estimator_demo_view.py"

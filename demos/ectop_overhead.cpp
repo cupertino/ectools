@@ -87,13 +87,15 @@ renderHeader(TermGridView &view, MonitorEctop &m)
   ss << view.getRowViewCount();
   if (m.pow != NULL)
     {
+      m.pow->update();
       ss << ", Power (W): ";
       ss << m.pow->getValue().Float;
     }
   if (m.cpu != NULL)
     {
+      m.cpu->update();
       ss << ", CPU (%):";
-      ss << m.cpu->getValuePid(-1).Float;
+      ss << m.cpu->getValue().Float * 100;
     }
   Console::drawText(ss.str(), 0, 1);
 
